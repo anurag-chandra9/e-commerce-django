@@ -23,12 +23,12 @@ def index(request):
 def about(request):
     return render(request,'shop/about.html')
 def contact(request):
-    return HttpResponse("we are at contact")
+    return render(request,'shop/tracker.html')
 def tracker(request):
-    return HttpResponse("we are at tracker")
+    return render(request,'shop/contact.html')
 def search(request):
-    return HttpResponse("we are at search")
+     return render(request,'shop/search.html')
 def productview(request):
-    return HttpResponse("we are at productview")
+    return render(request,'shop/prodview.html')
 def checkout(request):
-    return HttpResponse("we are at checkout")
+     return render(request,'shop/checkout.html')
