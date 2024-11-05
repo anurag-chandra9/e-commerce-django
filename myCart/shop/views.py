@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Product,Contact
+from .models import Product,Contact,Orders,Orderupdate
 from math import ceil
+import json
 # Create your views here.
+
+
 def index(request):
     # products= Product.objects.all()
     # n= len(products)
@@ -20,8 +23,12 @@ def index(request):
         allprods.append([prod,range(1, nSlides), nSlides])
     params={'allprods':allprods}  
     return render(request,"shop/index.html", params)
+
+
 def about(request):
     return render(request,'shop/about.html')
+
+
 def contact(request):
     if request.method == "POST":
         print(request)
@@ -33,13 +40,76 @@ def contact(request):
         contact = Contact(name=name, email=email, phone=phone, desc=desc)
         contact.save()
     return render(request, 'shop/contact.html')
+
+
 def tracker(request):
+    if request.method == "POST":
+        OrderId= request.POST.get('OrderId', '')
+        email = request.POST.get('email', '')
+        
+        order=Orders.objects.filter(order_id=OrderId,email=email)
+        if len(order)>0:
+                update=Orderupdate.objects.filter(order_id=OrderId)
+                updates=[]
+                for item in update:
+                    updates.append({'text':item.update_desc,})
+                response=json.dumps(updates)
+                return HttpResponse(response)
+        else:
+                pass    
     return render(request,'shop/tracker.html')
+
+# def tracker(request):
+#     if request.method == "POST":
+#         OrderId = request.POST.get('OrderId', '')
+#         email = request.POST.get('email', '')
+        
+#         order = Orders.objects.filter(order_id=OrderId, email=email)
+#         if len(order) > 0:
+#             update = Orderupdate.objects.filter(order_id=OrderId)
+#             updates = []
+#             for item in update:
+#                 updates.append({
+#                     'text': item.update_desc,
+#                     'time': item.update_time.strftime('%Y-%m-%d %H:%M:%S')  # Convert datetime to string
+#                 })
+#             response = json.dumps(updates)
+#             return HttpResponse(response, content_type="application/json")
+#         else:
+#             # You might want to handle the case when no orders are found
+#             return HttpResponse(json.dumps({'error': 'No order found'}), content_type="application/json")
+    
+#     return render(request, 'shop/tracker.html')
+
+
+
 def search(request):
      return render(request,'shop/search.html')
+
+
 def productview(request, myid):
     product=Product.objects.filter(id=myid)
     print(product)
     return render(request, "shop/prodview.html", {'product':product[0]})
+
+
 def checkout(request):
-     return render(request,'shop/checkout.html')
+    if request.method == "POST":
+        print(request)
+        items_json=request.POST.get('itemsJson', '')
+        name = request.POST.get('name', '')
+        email = request.POST.get('email', '')
+        address= request.POST.get('address1', '') + " " + request.POST.get('address2', '')
+        city= request.POST.get('city', '')
+        state= request.POST.get('state', '')
+        zip_code= request.POST.get('zip_code', '')
+        phone= request.POST.get('phone', '')
+        order = Orders(items_json=items_json, name=name, email=email, address=address, city=city, state= state , zip_code=zip_code, phone=phone)
+        order.save()
+        update=Orderupdate(order_id=order.order_id,update_desc="The order has been placed")
+        update.save()
+        thank=True
+        id=order.order_id
+        return render(request, 'shop/checkout.html', {'thank':thank, 'id':id})
+
+    return render(request,'shop/checkout.html')
