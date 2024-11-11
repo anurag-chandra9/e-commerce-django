@@ -23,3 +23,11 @@
   </div>
   <button type="submit" class="btn btn-success">Submit</button>
   {% endblock %}
+{%block js%}
+<script>
+  {% if thank %}
+ alert('Thanks for contacting us. we will get back soon.');
+ document.location = "/shop/contact/";
+{% endif %}
+</script>
+{%endblock%}
