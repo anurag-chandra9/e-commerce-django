@@ -5,6 +5,7 @@ from math import ceil
 import json
 from django.views.decorators.csrf import csrf_exempt
 from paytm import checksum
+MERCHANT_KEY = 'Your-Merchant-Key-Here'
 # Create your views here.
 
 
@@ -25,7 +26,29 @@ def index(request):
         allprods.append([prod,range(1, nSlides), nSlides])
     params={'allprods':allprods}  
     return render(request,"shop/index.html", params)
+def searchmatch(query, item):
+    
+    if query in item.desc.lower() or query in item.product_name.lower() or query in item.category.lower():
+        return True
+    else:
+        return False
 
+def search(request):
+    query= request.GET.get('search')
+    allProds = []
+    catprods = Product.objects.values('category', 'id')
+    cats = {item['category'] for item in catprods}
+    for cat in cats:
+        prodtemp = Product.objects.filter(category=cat)
+        prod=[item for item in prodtemp if searchmatch(query, item)]
+        n = len(prod)
+        nSlides = n // 4 + ceil((n / 4) - (n // 4))
+        if len(prod)!= 0:
+            allProds.append([prod, range(1, nSlides), nSlides])
+    params = {'allProds': allProds, "msg":""}
+    if len(allProds)==0 or len(query)<4:
+        params={'msg':"Please make sure to enter relevant search query"}
+    return render(request, 'shop/search.html', params)
 
 def about(request):
     return render(request,'shop/about.html')
@@ -87,8 +110,7 @@ def tracker(request):
 
 
 
-def search(request):
-     return render(request,'shop/search.html')
+
 
 
 def productview(request, myid):
@@ -155,7 +177,7 @@ def checkout(request):
         # Request paytm to transfer the amount to your account after payment by user
         param_dict = {
 
-                'MID': 'Your-Merchant-Id-Here',
+                'MID': 'AZUPOe27859329743477',
                 'ORDER_ID': str(order.order_id),
                 'TXN_AMOUNT': str(amount),
                 'CUST_ID': email,
@@ -165,7 +187,7 @@ def checkout(request):
                 'CALLBACK_URL':'http://127.0.0.1:8000/shop/handlerequest/',
 
         }
-       # param_dict['CHECKSUMHASH'] = Checksum.generate_checksum(param_dict, MERCHANT_KEY)
+        param_dict['CHECKSUMHASH'] = checksum.generate_checksum(param_dict, MERCHANT_KEY)
         return render(request, 'shop/paytm.html', {'param_dict': param_dict})
 
     return render(request, 'shop/checkout.html')
@@ -173,5 +195,17 @@ def checkout(request):
 
 @csrf_exempt
 def handlerequest(request):
-    return HttpResponse('done')
-    pass
+    form = request.POST
+    response_dict = {}
+    for i in form.keys():
+        response_dict[i] = form[i]
+        if i == 'CHECKSUMHASH':
+            checksum = form[i]
+
+    verify = checksum.verify_checksum(response_dict, MERCHANT_KEY, checksum)
+    if verify:
+        if response_dict['RESPCODE'] == '01':
+            print('order successful')
+        else:
+            print('order was not successful because' + response_dict['RESPMSG'])
+    return render(request, 'shop/paymentstatus.html', {'response': response_dict})

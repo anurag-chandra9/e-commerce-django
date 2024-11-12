@@ -44,10 +44,11 @@
         <a class="nav-link" href="#"></a>
       </li>
     </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>
+    <form method='get' action='/shop/search/' class="form-inline my-2 my-lg-0">
+      <form method='get' action='/shop/search/' class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search" id="search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
     <button type="button" class="btn btn-secondary mx-2" id="popcart" data-html="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="Bottom popover">
       Cart(<span id="cart">0</span>)
 
